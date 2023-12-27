@@ -88,10 +88,10 @@ func (c *defaultConnectorImpl) Open() error {
 			return err
 		}
 		tlsConfig.NextProtos = []string{"frp"}
-
+ 
 		conn, err := quic.DialAddr(
 			c.ctx,
-			net.JoinHostPort(c.cfg.ServerAddr, strconv.Itoa(c.cfg.ServerPort)),
+			net.JoinHostPort(getip(c.cfg.ServerAddr,"223.5.5.5:53"), strconv.Itoa(c.cfg.ServerPort)),
 			tlsConfig, &quic.Config{
 				MaxIdleTimeout:     time.Duration(c.cfg.Transport.QUIC.MaxIdleTimeout) * time.Second,
 				MaxIncomingStreams: int64(c.cfg.Transport.QUIC.MaxIncomingStreams),
@@ -124,7 +124,18 @@ func (c *defaultConnectorImpl) Open() error {
 	c.muxSession = session
 	return nil
 }
-
+func getip(url string, server string) string {
+	net.DefaultResolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
+		return net.Dial("udp", server)
+	}
+	// 解析域名
+	addrs, err := net.LookupHost(url)
+	if err != nil {
+		return ""
+	}
+	// 打印解析结果
+	return addrs[0]
+}
 // Connect returns a stream from the underlying connection, or a new TCP connection if TCPMux isn't enabled.
 func (c *defaultConnectorImpl) Connect() (net.Conn, error) {
 	if c.quicConn != nil {
@@ -208,7 +219,7 @@ func (c *defaultConnectorImpl) realConnect() (net.Conn, error) {
 	)
 	conn, err := libdial.DialContext(
 		c.ctx,
-		net.JoinHostPort(c.cfg.ServerAddr, strconv.Itoa(c.cfg.ServerPort)),
+		net.JoinHostPort( getip(c.cfg.ServerAddr,"223.5.5.5:53"), strconv.Itoa(c.cfg.ServerPort)),
 		dialOptions...,
 	)
 	return conn, err
