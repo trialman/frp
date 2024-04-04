@@ -53,7 +53,11 @@ func NewHTTP2HTTPSPlugin(options v1.ClientPluginOptions) (Plugin, error) {
 	}
 
 	rp := &httputil.ReverseProxy{
-		Director: func(req *http.Request) {
+		Rewrite: func(r *httputil.ProxyRequest) {
+			r.Out.Header["X-Forwarded-For"] = r.In.Header["X-Forwarded-For"]
+			r.Out.Header["X-Forwarded-Host"] = r.In.Header["X-Forwarded-Host"]
+			r.Out.Header["X-Forwarded-Proto"] = r.In.Header["X-Forwarded-Proto"]
+			req := r.Out
 			req.URL.Scheme = "https"
 			req.URL.Host = p.opts.LocalAddr
 			if p.opts.HostHeaderRewrite != "" {

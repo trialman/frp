@@ -1,3 +1,7 @@
-### Deprecation Notices
+### Features
 
-* Using an underscore in a flag name is deprecated and has been replaced by a hyphen. The underscore format will remain compatible for some time, until it is completely removed in a future version. For example, `--remote_port` is replaced with `--remote-port`.
+* `https2http` and `https2https` plugin now supports `X-Forwared-For` header.
+
+### Fixes
+
+* `X-Forwared-For` header is now correctly set in the request to the backend server for proxy type http.
